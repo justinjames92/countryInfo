@@ -1,12 +1,14 @@
 import "./App.css";
 import { useEffect, useState } from "react";
-
-import { Row, Col } from "react-bootstrap";
+import sorting from "./Images/sorting.png";
+import refresh from "./Images/refresh.png";
+import { Container, Row, Col } from "react-bootstrap";
 
 function App() {
   const [data, setData] = useState([]);
   const [details, setdetails] = useState({});
   const [countryName, setCountryName] = useState("");
+  const [sortOrder, setSortOrder] = useState("ascending");
   useEffect(() => {
     fetch("https://restcountries.com/v3.1/all?fields=name,flags")
       .then((response) => response.text())
@@ -24,56 +26,82 @@ function App() {
     console.log(e.target.value);
     setCountryName(e.target.value);
   };
-  console.log(countryName);
-  let result = [];
+  const handleSort = () => {
+    let sortedData = [...data].sort((a, b) => {
+      if (sortOrder === "ascending") {
+        return a.name.common.localeCompare(b.name.common);
+      } else {
+        return b.name.common.localeCompare(a.name.common);
+      }
+
+    });
+    setData(sortedData);
+    setSortOrder(sortOrder === 'ascending' ? 'descending' : 'ascending');
+
+  };
+
+  let result = data;
   {
     countryName !== "" &&
       (result = data.filter((i) =>
-        i.name.common.toLowerCase().startsWith(countryName.toLowerCase())
+        i.name.common.toLowerCase().includes(countryName.toLowerCase())
       ));
   }
-  console.log(result);
+
   return (
     <>
-      <Row>
-        <Col md={3}>
-          <h2>List of countries in world</h2>
-          <ul>
-            {data.map((i) => (
-              <li>
-                <a onClick={() => displayDetail(i.name.common)}>
-                  {i.name.common}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </Col>
-        <Col md={3}>
-          <input
-            type="text"
-            value={countryName}
-            onChange={handleChange}
-            placeholder="search here"
-          ></input>
-        </Col>
-        <Col md={6}>
-          {Object.keys(details).length === 0 ? (
-            <h1>Please select a country</h1>
-          ) : (
-            <div>
-              <h2>History of countries Flag</h2>
-              <p>hghg</p>
-              <p>{details?.flags?.alt}</p>
-              <img
-                src={details?.flags?.png}
-                width={"100px"}
-                height={"100px"}
-                alt="National flag"
-              />
-            </div>
-          )}
-        </Col>
-      </Row>
+      <Container>
+        <Row>
+          <Col md={3}className="search">
+            <input
+              type="text"
+              value={countryName}
+              onChange={handleChange}
+              placeholder="search here"
+            ></input>
+            <img
+              onClick={() => handleSort(sortOrder)}
+              src={sorting}
+              width={"25px"}
+              height={"25px"}
+            ></img>
+            <img
+              onClick={() => handleSort(sortOrder)}
+              src={refresh}
+              width={"25px"}
+              height={"25px"}
+            ></img>
+
+            <h2 className="header">World Nations</h2>
+            <ul className="list">
+              {result.map((i) => (
+                <li>
+                  <a onClick={() => displayDetail(i.name.common)}>
+                    {i.name.common}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </Col>
+
+          <Col md={6}>
+            {Object.keys(details).length === 0 ? (
+              <h2>Please select a country</h2>
+            ) : (
+              <div>
+                <h2>History of countries Flag</h2>
+                <p>{details?.flags?.alt}</p>
+                <img
+                  src={details?.flags?.png}
+                  width={"100px"}
+                  height={"100px"}
+                  alt="National flag"
+                />
+              </div>
+            )}
+          </Col>
+        </Row>
+      </Container>
     </>
   );
 }
